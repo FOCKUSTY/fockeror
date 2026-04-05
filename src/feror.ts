@@ -1,23 +1,32 @@
-import type { ErrorTemplate, ExceptionFormatterClass, FormattedErrorTemplate, Logger, PlaceholderObject, PlaceholderRegexMap } from "./types";
-import { CLEAN_REGEX_REPLACER, CLEAN_SEARCH_REGEX, DEFAULT_HTTP_STATUS } from "./constants";
+import type {
+  ErrorTemplate,
+  ExceptionFormatterClass,
+  FormattedErrorTemplate,
+  Logger,
+  PlaceholderObject,
+  PlaceholderRegexMap,
+} from "./types";
+
+import {
+  PLACEHOLDER_PATTERN,
+  CLEAN_SEARCH_REGEX,
+  CLEAN_REGEX_REPLACER,
+  DEFAULT_HTTP_STATUS,
+} from "./constants";
+
 import { Exception } from "./exception";
 
 /**
- * Регулярное выражение для поиска плейсхолдеров вида `${{ key }}`.
- * Используется для извлечения ключей из строковых шаблонов.
- */
-const PLACEHOLDER_PATTERN = /\$\{\{\s{1}([^}\s]+)\s{1}\}\}/g;
-
-/**
- * Класс, представляющий конкретную ошибку с возможностью динамической подстановки плейсхолдеров.
+ * Класс, представляющий конкретную ошибку с возможностью динамической подстановки плейсхолдеров по примеру `${{ key }}`.
  * @template Placeholders - Кортеж ключей плейсхолдеров (например, `['userId', 'action']`).
+ * @template FormatterClass - Тип класса-форматтера для преобразования исключения.
  *
  * @example
- * const error = new BadError({
- *   message: 'User {userId} not found',
- *   description: 'No user with id {userId} exists',
+ * const error = new Feror({
+ *   message: 'User ${{ userId }} not found',
+ *   description: 'No user with id ${{ userId }} exists',
  *   placeholders: ['userId']
- * }, logger);
+ * }, logger, formatterClass);
  *
  * // Подстановка значений
  * throw error.throw({ userId: '123' });
@@ -25,22 +34,20 @@ const PLACEHOLDER_PATTERN = /\$\{\{\s{1}([^}\s]+)\s{1}\}\}/g;
  * // Статическое исключение (без подстановки)
  * throw error.exception;
  */
-export class Feror<
-  const Placeholders extends string[],
-  FormatterClass 
-> {
+export class Feror<const Placeholders extends string[], FormatterClass> {
   private readonly placeholderRegexes: PlaceholderRegexMap<Placeholders>;
 
   /**
-   * Создаёт экземпляр BadError.
+   * Создаёт экземпляр Feror.
    * @param template - Шаблон ошибки (должен содержать корректный массив `placeholders`).
-   * @param logger - Экземпляр логгера (должен соответствовать интерфейсу LoggerService).
+   * @param logger - Экземпляр логгера (должен соответствовать интерфейсу Logger).
+   * @param formatterClass - Класс для форматирования исключения в специфичный для фреймворка тип.
    * @throws {Error} Если объявленные в `placeholders` ключи не соответствуют реально найденным в тексте.
    */
   public constructor(
     public readonly template: ErrorTemplate<Placeholders>,
     private readonly logger: Logger,
-    private readonly formatterClass: ExceptionFormatterClass<FormatterClass>
+    private readonly formatterClass: ExceptionFormatterClass<FormatterClass>,
   ) {
     this.placeholderRegexes = this.extractPlaceholders(template);
   }
@@ -50,16 +57,17 @@ export class Feror<
     cause?: Error,
   ): FormatterClass;
   public execute(cause?: Error): FormatterClass;
+
   /**
-   * Возвращает объект HTTP исключения с подстановкой данных.
-   * Если передан пустой объект `placeholders`, возвращается статическое исключение (без замен).
+   * Возвращает отформатированное исключение с подстановкой данных.
+   * Если передан пустой объект `placeholders` или вызов без аргументов, возвращается статическое исключение.
    *
-   * @param placeholdersOrCause - Объект с значениями для замены плейсхолдеров.
-   * @param cause - Дополнительная причина ошибки (будет передана в Exception).
-   * @returns Экземпляр Exception с подставленными значениями.
+   * @param placeholdersOrCause - Объект с значениями для замены плейсхолдеров или причина ошибки.
+   * @param cause - Дополнительная причина ошибки (если первый аргумент — placeholders).
+   * @returns Экземпляр форматтера (обычно исключение фреймворка).
    *
    * @example
-   * const error = new BadError({ message: 'Hello {name}', description: '' }, logger);
+   * const error = new Feror({ message: 'Hello ${{ name }}', description: '', placeholders: ['name'] }, logger, formatter);
    * const exception = error.execute({ name: 'World' });
    * throw exception;
    */
@@ -67,7 +75,7 @@ export class Feror<
     placeholdersOrCause?: PlaceholderObject<Placeholders> | Error,
     cause?: Error,
   ): FormatterClass {
-    let placeholders: PlaceholderObject<Placeholders> | undefined = undefined;
+    let placeholders: PlaceholderObject<Placeholders> | undefined;
     let actualCause: Error | undefined;
 
     if (placeholdersOrCause instanceof Error) {
@@ -89,11 +97,12 @@ export class Feror<
     cause?: Error,
   ): never;
   public throw(cause?: Error): never;
+
   /**
-   * Немедленно выбрасывает исключение с подстановкой данных.
-   * @param placeholders - Объект с значениями для замены плейсхолдеров.
+   * Немедленно выбрасывает отформатированное исключение с подстановкой данных.
+   * @param placeholdersOrCause - Объект с значениями для замены плейсхолдеров или причина ошибки.
    * @param cause - Дополнительная причина ошибки.
-   * @throws {Exception} Всегда выбрасывает Exception.
+   * @throws {FormatterClass} Всегда выбрасывает исключение, отформатированное через `formatterClass`.
    */
   public throw(
     placeholdersOrCause?: PlaceholderObject<Placeholders> | Error,
@@ -102,18 +111,22 @@ export class Feror<
     if (placeholdersOrCause instanceof Error) {
       throw this.execute(placeholdersOrCause);
     }
-
     throw this.execute(
       placeholdersOrCause as PlaceholderObject<Placeholders>,
       cause,
     );
   }
 
+  /**
+   * Геттер, возвращающий статическое исключение (без подстановки плейсхолдеров).
+   * Позволяет использовать краткую запись `throw error.exception`.
+   */
+  public get exception(): FormatterClass {
+    return this.createStaticException();
+  }
+
   private createStaticException(cause?: Error): FormatterClass {
-    return this.createException(
-      { ...this.template, placeholders: [] },
-      cause,
-    );
+    return this.createException({ ...this.template, placeholders: [] }, cause);
   }
 
   private createDynamicException(
@@ -156,11 +169,11 @@ export class Feror<
     cause?: Error,
   ): FormatterClass {
     const status = error.status ?? this.template.status ?? DEFAULT_HTTP_STATUS;
-    
-    return new Exception(error.message, status, {
+    const exception = new Exception(error.message, status, {
       description: error.description,
       cause: cause ?? error.cause,
-    }).format(this.formatterClass);
+    });
+    return exception.format(this.formatterClass);
   }
 
   private collectPlaceholdersFromText(
@@ -171,6 +184,7 @@ export class Feror<
     for (const match of text.matchAll(PLACEHOLDER_PATTERN)) {
       set.add(match[1] as Placeholders[number]);
     }
+
     return set;
   }
 
@@ -212,12 +226,12 @@ export class Feror<
   private buildRegexMap(
     keys: Set<Placeholders[number]>,
   ): PlaceholderRegexMap<Placeholders> {
-    const placeholdersMap: PlaceholderRegexMap<Placeholders> = new Map();
+    const map = new Map();
     for (const key of keys) {
-      placeholdersMap.set(key, this.createRegEx(key));
+      map.set(key, this.createRegEx(key));
     }
 
-    return placeholdersMap;
+    return map;
   }
 
   private extractPlaceholders(

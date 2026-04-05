@@ -1,4 +1,11 @@
-import type { ErrorTemplate, ErrorTemplateInput, ExceptionFormatterClass, Ferors, InferPlaceholders, Logger } from "./types";
+import type {
+  ErrorTemplate,
+  ErrorTemplateInput,
+  ExceptionFormatterClass,
+  Ferors,
+  InferPlaceholders,
+  Logger,
+} from "./types";
 
 import { PLACEHOLDER_PATTERN } from "./constants";
 import { Feror } from "./feror";
@@ -8,19 +15,21 @@ import { Feror } from "./feror";
  * Каждой ошибке присваивается уникальный код формата `base64url(prefix):hex(key:index)`.
  * Плейсхолдеры извлекаются автоматически из полей `message` и `description`.
  *
+ * @template FormatterClass - Тип класса-форматтера исключений.
+ *
  * @example
- * const factory = ferorFactory.execute(logger);
+ * const factory = new FerorFactory(logger, CustomExceptionFormatter);
  * const errors = factory.execute('AUTH', {
  *   INVALID_TOKEN: {
  *     message: 'Invalid token',
  *     description: 'The token is expired',
- *     status: HttpStatus.UNAUTHORIZED
+ *     status: 401,
  *   },
  *   USER_NOT_FOUND: {
- *     message: 'User {userId} not found',
- *     description: 'No user with id {userId} exists',
- *     status: HttpStatus.NOT_FOUND
- *   }
+ *     message: 'User ${{ userId }} not found',
+ *     description: 'No user with id ${{ userId }} exists',
+ *     status: 404,
+ *   },
  * });
  *
  * // Статическое исключение (без плейсхолдеров)
@@ -30,9 +39,13 @@ import { Feror } from "./feror";
  * throw errors.USER_NOT_FOUND.execute({ userId: '123' });
  */
 export class FerorFactory<FormatterClass> {
+  /**
+   * @param logger - Экземпляр логгера (должен соответствовать интерфейсу Logger).
+   * @param formatterClass - Класс для форматирования исключения (должен иметь конструктор, совместимый с Exception).
+   */
   public constructor(
     private readonly logger: Logger,
-    private readonly formatterClass: ExceptionFormatterClass<FormatterClass>
+    private readonly formatterClass: ExceptionFormatterClass<FormatterClass>,
   ) {}
 
   /**
@@ -62,7 +75,9 @@ export class FerorFactory<FormatterClass> {
         ...errorTemplate,
         message: `${code} : ${errorTemplate.message}`,
       };
-      return [key, new Feror(prefixed, this.logger, this.formatterClass)];
+      const feror = new Feror(prefixed, this.logger, this.formatterClass);
+
+      return [key, feror];
     });
 
     return Object.fromEntries(entries);
@@ -78,11 +93,14 @@ export class FerorFactory<FormatterClass> {
     error: Template,
   ): ErrorTemplate<InferPlaceholders<Template>> {
     const combined = `${error.message} ${error.description}`;
-
     const matches = combined.match(PLACEHOLDER_PATTERN);
     const allKeys = matches?.map((m) => m.slice(1, -1)) ?? [];
-    const uniqueKeys = Array.from(new Set(allKeys)) as InferPlaceholders<Template>;
+    const uniqueKeys = Array.from(
+      new Set(allKeys),
+    ) as InferPlaceholders<Template>;
 
     return { ...error, placeholders: uniqueKeys };
   }
 }
+
+export default FerorFactory;

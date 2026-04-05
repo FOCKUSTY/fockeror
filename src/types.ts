@@ -1,8 +1,11 @@
 import { Exception } from "./exception";
 import type { Feror } from "./feror";
 
+/** Интерфейс логгера, используемого в модуле. */
 export interface Logger {
+  /** Логирование ошибки. */
   error: (message: Error) => unknown;
+  /** Логирование информационного сообщения. */
   execute: (message: string) => unknown;
 }
 
@@ -10,7 +13,6 @@ export interface Logger {
  * Объект, содержащий значения для подстановки вместо плейсхолдеров.
  * @template Placeholders - Массив строковых ключей (например, `['userId', 'role']`).
  * @example
- * // Для Placeholders = ['userId', 'role']
  * type Data = PlaceholderObject<['userId', 'role']>; // { userId: string; role: string }
  */
 export type PlaceholderObject<Placeholders extends string[]> = {
@@ -19,12 +21,13 @@ export type PlaceholderObject<Placeholders extends string[]> = {
 
 /**
  * Рекурсивный тип, извлекающий все ключи плейсхолдеров из строки в кортеж.
- * Проходит по строке, находит каждое вхождение `${{ key }}` и добавляет `key` в аккумулятор.
- * Дубликаты сохраняются, порядок соответствует порядку появления в строке.
+ * **Важно:** для корректного вывода типов используйте ровно один пробел внутри `${{ key }}`.
+ * В рантайме допускается любое количество пробелов благодаря регулярному выражению.
+ *
  * @template InputString - Исходная строка.
  * @template Acc - Аккумулятор кортежа (по умолчанию []).
  * @example
- * type Keys = ExtractPlaceholdersTuple<"Hello {name}, your id is {id}">; // ['name', 'id']
+ * type Keys = ExtractPlaceholdersTuple<"Hello ${{ name }}, your id is ${{ id }}">; // ['name', 'id']
  */
 export type ExtractPlaceholdersTuple<
   InputString extends string,
@@ -39,11 +42,12 @@ export type ExtractPlaceholdersTuple<
  * Вычисляет кортеж плейсхолдеров, объединяя поля `message` и `description` шаблона.
  * @template T - Объект с обязательными полями `message` и `description`.
  * @example
- * type Template = { message: "User {userId}", description: "Action {action}" };
+ * type Template = { message: "User ${{ userId }}", description: "Action ${{ action }}" };
  * type Placeholders = InferPlaceholders<Template>; // ['userId', 'action']
  */
-export type InferPlaceholders<T extends { message: string; description: string }> =
-  ExtractPlaceholdersTuple<`${T["message"]} ${T["description"]}`>;
+export type InferPlaceholders<
+  T extends { message: string; description: string },
+> = ExtractPlaceholdersTuple<`${T["message"]} ${T["description"]}`>;
 
 /**
  * Входной формат описания ошибки без автоматически вычисляемого поля `placeholders`.
@@ -54,11 +58,11 @@ export type ErrorTemplateInput = {
   message: string;
   /** Подробное описание ошибки (может содержать плейсхолдеры `${{ key }}`). */
   description: string;
-  /** Дополнительная причина ошибки (если строка, в ней тоже могут быть плейсхолдеры). */
+  /** Дополнительная причина ошибки (объект Error). */
   cause?: Error;
   /** HTTP статус-код (по умолчанию 500). */
   status?: number;
-  /** Дополнительные опции для HttpException. */
+  /** Дополнительные опции, которые будут переданы в форматтер исключения. */
   options?: Record<string, unknown>;
 };
 
@@ -84,18 +88,33 @@ export type PlaceholderRegexMap<Placeholders extends string[]> = Map<
 /** Шаблон после замены всех плейсхолдеров (плейсхолдеры отсутствуют). */
 export type FormattedErrorTemplate = ErrorTemplate<[]>;
 
-/** Преобразует запись входных шаблонов в запись экземпляров `BadError`. */
+/**
+ * Преобразует запись входных шаблонов в запись экземпляров `Feror`.
+ * @template T - Объект с шаблонами ошибок.
+ * @template FormatterClass - Класс форматтера исключений.
+ */
 export type Ferors<
   T extends Record<string, ErrorTemplateInput>,
-  FormatterClass
+  FormatterClass,
 > = {
   [K in keyof T]: Feror<InferPlaceholders<T[K]>, FormatterClass>;
 };
 
+/** Опции исключения (cause, description). */
 export interface ExceptionOptions {
   cause?: unknown;
   description?: string;
 }
 
-export type ExceptionConstructorParameters = ConstructorParameters<typeof Exception>;
-export type ExceptionFormatterClass<T> = new (...parameters: ExceptionConstructorParameters) => T;
+/** Параметры конструктора класса Exception. */
+export type ExceptionConstructorParameters = ConstructorParameters<
+  typeof Exception
+>;
+
+/**
+ * Класс-конструктор форматтера исключений.
+ * @template T - Тип возвращаемого экземпляра.
+ */
+export type ExceptionFormatterClass<T> = new (
+  ...parameters: ExceptionConstructorParameters
+) => T;
