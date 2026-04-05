@@ -1,5 +1,5 @@
 import { Exception } from "./exception";
-import type { Feror } from "./feror";
+import type { Fockeror } from "./fockeror";
 
 /** Интерфейс логгера, используемого в модуле. */
 export interface Logger {
@@ -97,7 +97,7 @@ export type Ferors<
   T extends Record<string, ErrorTemplateInput>,
   FormatterClass,
 > = {
-  [K in keyof T]: Feror<InferPlaceholders<T[K]>, FormatterClass>;
+  [K in keyof T]: Fockeror<InferPlaceholders<T[K]>, FormatterClass>;
 };
 
 /** Опции исключения (cause, description). */

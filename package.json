@@ -1,5 +1,5 @@
 {
-  "name": "feror",
+  "name": "fockeror",
   "version": "0.1.0",
   "description": "",
   "main": "./dist/index.js",
@@ -16,11 +16,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fockusty/feror.git"
+    "url": "git+https://github.com/fockusty/fockeror.git"
   },
-  "homepage": "https://github.com/fockusty/feror#readme",
+  "homepage": "https://github.com/fockusty/fockeror#readme",
   "bugs": {
-    "url": "https://github.com/fockusty/feror/issues"
+    "url": "https://github.com/fockusty/fockeror/issues"
   },
   "files": [
     "dist"

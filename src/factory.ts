@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 import { PLACEHOLDER_PATTERN } from "./constants";
-import { Feror } from "./feror";
+import { Fockeror } from "./fockeror";
 
 /**
  * Фабричный класс, создающий набор предопределённых ошибок с автоматически сгенерированными кодами.
@@ -18,7 +18,7 @@ import { Feror } from "./feror";
  * @template FormatterClass - Тип класса-форматтера исключений.
  *
  * @example
- * const factory = new FerorFactory(logger, CustomExceptionFormatter);
+ * const factory = new FockerorFactory(logger, CustomExceptionFormatter);
  * const errors = factory.execute('AUTH', {
  *   INVALID_TOKEN: {
  *     message: 'Invalid token',
@@ -38,7 +38,7 @@ import { Feror } from "./feror";
  * // Динамическое исключение с подстановкой
  * throw errors.USER_NOT_FOUND.execute({ userId: '123' });
  */
-export class FerorFactory<FormatterClass> {
+export class FockerorFactory<FormatterClass> {
   /**
    * @param logger - Экземпляр логгера (должен соответствовать интерфейсу Logger).
    * @param formatterClass - Класс для форматирования исключения (должен иметь конструктор, совместимый с Exception).
@@ -50,11 +50,11 @@ export class FerorFactory<FormatterClass> {
 
   /**
    * Генерирует набор ошибок для указанного префикса и шаблонов.
-   * Для каждого шаблона создаётся экземпляр `Feror` с автоматически вычисленными плейсхолдерами.
+   * Для каждого шаблона создаётся экземпляр `Fockeror` с автоматически вычисленными плейсхолдерами.
    *
    * @param prefix - Строка для генерации уникального кода (будет преобразована в base64url).
    * @param templates - Объект, где ключи — идентификаторы ошибок, значения — `ErrorTemplateInput`.
-   * @returns Объект с экземплярами `Feror`, ключи соответствуют ключам входного объекта.
+   * @returns Объект с экземплярами `Fockeror`, ключи соответствуют ключам входного объекта.
    *
    * @template Templates - Тип входных шаблонов.
    */
@@ -75,9 +75,9 @@ export class FerorFactory<FormatterClass> {
         ...errorTemplate,
         message: `${code} : ${errorTemplate.message}`,
       };
-      const feror = new Feror(prefixed, this.logger, this.formatterClass);
+      const fockeror = new Fockeror(prefixed, this.logger, this.formatterClass);
 
-      return [key, feror];
+      return [key, fockeror];
     });
 
     return Object.fromEntries(entries);
@@ -103,4 +103,4 @@ export class FerorFactory<FormatterClass> {
   }
 }
 
-export default FerorFactory;
+export default FockerorFactory;

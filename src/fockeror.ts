@@ -22,7 +22,7 @@ import { Exception } from "./exception";
  * @template FormatterClass - Тип класса-форматтера для преобразования исключения.
  *
  * @example
- * const error = new Feror({
+ * const error = new Fockeror({
  *   message: 'User ${{ userId }} not found',
  *   description: 'No user with id ${{ userId }} exists',
  *   placeholders: ['userId']
@@ -34,11 +34,11 @@ import { Exception } from "./exception";
  * // Статическое исключение (без подстановки)
  * throw error.exception;
  */
-export class Feror<const Placeholders extends string[], FormatterClass> {
+export class Fockeror<const Placeholders extends string[], FormatterClass> {
   private readonly placeholderRegexes: PlaceholderRegexMap<Placeholders>;
 
   /**
-   * Создаёт экземпляр Feror.
+   * Создаёт экземпляр Fockeror.
    * @param template - Шаблон ошибки (должен содержать корректный массив `placeholders`).
    * @param logger - Экземпляр логгера (должен соответствовать интерфейсу Logger).
    * @param formatterClass - Класс для форматирования исключения в специфичный для фреймворка тип.
@@ -67,7 +67,7 @@ export class Feror<const Placeholders extends string[], FormatterClass> {
    * @returns Экземпляр форматтера (обычно исключение фреймворка).
    *
    * @example
-   * const error = new Feror({ message: 'Hello ${{ name }}', description: '', placeholders: ['name'] }, logger, formatter);
+   * const error = new Fockeror({ message: 'Hello ${{ name }}', description: '', placeholders: ['name'] }, logger, formatter);
    * const exception = error.execute({ name: 'World' });
    * throw exception;
    */
@@ -248,4 +248,4 @@ export class Feror<const Placeholders extends string[], FormatterClass> {
   }
 }
 
-export default Feror;
+export default Fockeror;
