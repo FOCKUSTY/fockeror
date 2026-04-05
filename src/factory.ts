@@ -94,7 +94,8 @@ export class FockerorFactory<FormatterClass> {
   ): ErrorTemplate<InferPlaceholders<Template>> {
     const combined = `${error.message} ${error.description}`;
     const matches = combined.match(PLACEHOLDER_PATTERN);
-    const allKeys = matches?.map((m) => m.slice(OFFSETS.START, OFFSETS.END)) ?? [];
+    const allKeys =
+      matches?.map((m) => m.slice(OFFSETS.START, OFFSETS.END)) ?? [];
     const uniqueKeys = Array.from(
       new Set(allKeys),
     ) as InferPlaceholders<Template>;
