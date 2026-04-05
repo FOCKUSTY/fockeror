@@ -86,10 +86,10 @@ export type FormattedErrorTemplate = ErrorTemplate<[]>;
 
 /** Преобразует запись входных шаблонов в запись экземпляров `BadError`. */
 export type Ferors<
-  ErrorTemplate extends Record<string, ErrorTemplateInput>,
+  T extends Record<string, ErrorTemplateInput>,
   FormatterClass
 > = {
-  [K in keyof ErrorTemplate]: Feror<InferPlaceholders<ErrorTemplate[K]>, FormatterClass>;
+  [K in keyof T]: Feror<InferPlaceholders<T[K]>, FormatterClass>;
 };
 
 export interface ExceptionOptions {
@@ -97,5 +97,5 @@ export interface ExceptionOptions {
   description?: string;
 }
 
-export type ExceptionConstuctorParameters = ConstructorParameters<typeof Exception>;
-export type ExceptionFormatterClass<T> = new (...parameters: ExceptionConstuctorParameters) => T;
+export type ExceptionConstructorParameters = ConstructorParameters<typeof Exception>;
+export type ExceptionFormatterClass<T> = new (...parameters: ExceptionConstructorParameters) => T;

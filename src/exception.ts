@@ -7,7 +7,7 @@ export class Exception {
     public readonly options?: ExceptionOptions
   ) {}
 
-  public format<T>(formatterClass: ExceptionFormatterClass<T>) {
+  public format<T>(formatterClass: ExceptionFormatterClass<T>): T {
     return new formatterClass(this.response, this.status, this.options);
   }
 }

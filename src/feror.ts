@@ -134,7 +134,7 @@ export class Feror<
       const value = placeholders[key];
       if (value === undefined) {
         this.logger.error(
-          new Error(`Placeholder {${key}} not provided in data`),
+          new Error(`Placeholder \${{ ${key} }} not provided in data`),
         );
         continue;
       }
