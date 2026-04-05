@@ -20,24 +20,23 @@ npm install fockeror
 ## Быстрый старт
 
 ```typescript
-import { FockerorFactory } from 'fockeror';
+import { FockerorFactory } from "fockeror";
 // 1. Определите свой форматтер исключений (пример для NestJS)
 import { HttpException } from "@nestjs/common";
-
 
 // 2. Создайте фабрику
 const factory = new FockerorFactory(HttpException, console);
 
 // 3. Определите шаблоны ошибок
-const errors = factory.execute('AUTH', {
+const errors = factory.execute("AUTH", {
   INVALID_TOKEN: {
-    message: 'Неверный токен',
-    description: 'Предоставленный токен повреждён или истёк',
+    message: "Неверный токен",
+    description: "Предоставленный токен повреждён или истёк",
     status: 401,
   },
   USER_NOT_FOUND: {
-    message: 'Пользователь ${{ userId }} не найден',
-    description: 'Пользователь с id ${{ userId }} не существует',
+    message: "Пользователь ${{ userId }} не найден",
+    description: "Пользователь с id ${{ userId }} не существует",
     status: 404,
   },
 });
@@ -47,7 +46,7 @@ const errors = factory.execute('AUTH', {
 throw errors.INVALID_TOKEN.exception;
 
 // Динамическая ошибка с подстановкой значений
-throw errors.USER_NOT_FOUND.execute({ userId: '123' });
+throw errors.USER_NOT_FOUND.execute({ userId: "123" });
 ```
 
 ## Зачем нужен Fockeror?
@@ -94,10 +93,10 @@ throw errors.USER_NOT_FOUND.execute({ userId: '123' });
 
 ```typescript
 type ErrorTemplateInput = {
-  message: string;        // может содержать ${{ placeholder }}
-  description: string;    // может содержать ${{ placeholder }}
-  status?: number;        // HTTP статус (по умолчанию 500)
-  cause?: Error;          // опциональная причина
+  message: string; // может содержать ${{ placeholder }}
+  description: string; // может содержать ${{ placeholder }}
+  status?: number; // HTTP статус (по умолчанию 500)
+  cause?: Error; // опциональная причина
   options?: Record<string, unknown>; // дополнительные данные для форматтера
 };
 ```
