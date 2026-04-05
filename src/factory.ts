@@ -7,7 +7,7 @@ import type {
   Logger,
 } from "./types";
 
-import { PLACEHOLDER_PATTERN } from "./constants";
+import { OFFSETS, PLACEHOLDER_PATTERN } from "./constants";
 import { Fockeror } from "./fockeror";
 
 /**
@@ -44,8 +44,8 @@ export class FockerorFactory<FormatterClass> {
    * @param formatterClass - Класс для форматирования исключения (должен иметь конструктор, совместимый с Exception).
    */
   public constructor(
-    private readonly logger: Logger,
     private readonly formatterClass: ExceptionFormatterClass<FormatterClass>,
+    private readonly logger?: Logger,
   ) {}
 
   /**
@@ -67,7 +67,7 @@ export class FockerorFactory<FormatterClass> {
       const input = templates[key];
       const errorTemplate = this.defineError(input);
       const code = this.generateCode(prefix, key, index);
-      this.logger.execute(
+      this.logger?.execute?.(
         `Загрузка ошибки ${prefix} ${code} : ${errorTemplate.message}`,
       );
 
@@ -75,7 +75,7 @@ export class FockerorFactory<FormatterClass> {
         ...errorTemplate,
         message: `${code} : ${errorTemplate.message}`,
       };
-      const fockeror = new Fockeror(prefixed, this.logger, this.formatterClass);
+      const fockeror = new Fockeror(prefixed, this.formatterClass, this.logger);
 
       return [key, fockeror];
     });
@@ -94,7 +94,7 @@ export class FockerorFactory<FormatterClass> {
   ): ErrorTemplate<InferPlaceholders<Template>> {
     const combined = `${error.message} ${error.description}`;
     const matches = combined.match(PLACEHOLDER_PATTERN);
-    const allKeys = matches?.map((m) => m.slice(1, -1)) ?? [];
+    const allKeys = matches?.map((m) => m.slice(OFFSETS.START, OFFSETS.END)) ?? [];
     const uniqueKeys = Array.from(
       new Set(allKeys),
     ) as InferPlaceholders<Template>;

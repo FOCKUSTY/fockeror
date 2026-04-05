@@ -7,6 +7,12 @@
  */
 export const PLACEHOLDER_PATTERN = /\$\{\{\s{1}([^}\s]+)\s{1}\}\}/g;
 
+export const OFFSETS = {
+  START: "${{ ".length,
+  /** negative (`-length`) */
+  END: -" }}".length
+} as const;
+
 /** Статус HTTP по умолчанию (500 Internal Server Error). */
 export const DEFAULT_HTTP_STATUS = 500 as const;
 

@@ -46,8 +46,8 @@ export class Fockeror<const Placeholders extends string[], FormatterClass> {
    */
   public constructor(
     public readonly template: ErrorTemplate<Placeholders>,
-    private readonly logger: Logger,
     private readonly formatterClass: ExceptionFormatterClass<FormatterClass>,
+    private readonly logger?: Logger,
   ) {
     this.placeholderRegexes = this.extractPlaceholders(template);
   }
@@ -146,7 +146,7 @@ export class Fockeror<const Placeholders extends string[], FormatterClass> {
     for (const [key, regex] of this.placeholderRegexes.entries()) {
       const value = placeholders[key];
       if (value === undefined) {
-        this.logger.error(
+        this.logger?.error?.(
           new Error(`Placeholder \${{ ${key} }} not provided in data`),
         );
         continue;
@@ -218,7 +218,7 @@ export class Fockeror<const Placeholders extends string[], FormatterClass> {
     }
 
     if (errors.length !== 0) {
-      errors.forEach((e) => this.logger.error(e));
+      errors.forEach((e) => this.logger?.error?.(e));
       throw new Error("Placeholder validation failed.");
     }
   }
