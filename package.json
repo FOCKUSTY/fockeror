@@ -20,11 +20,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fockusty/fockeror.git"
+    "url": "https://github.com/FOCKUSTY/fockeror.git"
   },
-  "homepage": "https://github.com/fockusty/fockeror#readme",
+  "homepage": "https://github.com/FOCKUSTY/fockeror#readme",
   "bugs": {
-    "url": "https://github.com/fockusty/fockeror/issues"
+    "url": "https://github.com/FOCKUSTY/fockeror/issues"
   },
   "files": [
     "dist"
