@@ -1,0 +1,23 @@
+# logs
+*.log
+logs
+log
+
+# dependency directories
+node_modules/
+
+# build
+build/
+dist/
+out/
+
+*.d.ts
+*.d.ts.map
+*.js.map
+*.js
+
+tsconfig.tsbuildinfo
+
+# vscode
+.vs
+.vscode
