@@ -2,7 +2,7 @@ import type {
   ErrorTemplate,
   ErrorTemplateInput,
   ExceptionFormatterClass,
-  Ferors,
+  Fockerors,
   InferPlaceholders,
   Logger,
 } from "./types";
@@ -61,7 +61,7 @@ export class FockerorFactory<FormatterClass> {
   public execute<const Templates extends Record<string, ErrorTemplateInput>>(
     prefix: string,
     templates: Templates,
-  ): Ferors<Templates, FormatterClass> {
+  ): Fockerors<Templates, FormatterClass> {
     const templateKeys = Object.keys(templates);
     const entries = templateKeys.map((key, index) => {
       const input = templates[key];

@@ -88,11 +88,11 @@ export type PlaceholderRegexMap<Placeholders extends string[]> = Map<
 export type FormattedErrorTemplate = ErrorTemplate<[]>;
 
 /**
- * Преобразует запись входных шаблонов в запись экземпляров `Feror`.
+ * Преобразует запись входных шаблонов в запись экземпляров `Fockeror`.
  * @template T - Объект с шаблонами ошибок.
  * @template FormatterClass - Класс форматтера исключений.
  */
-export type Ferors<
+export type Fockerors<
   T extends Record<string, ErrorTemplateInput>,
   FormatterClass,
 > = {
