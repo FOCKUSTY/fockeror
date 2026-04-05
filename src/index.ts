@@ -4,6 +4,6 @@ export * from "./fockeror";
 export * from "./factory";
 export * from "./exception";
 
-export type { Logger, ExceptionOptions } from "./types";
+export type { Logger, ExceptionOptions, Fockerors } from "./types";
 
 export default FockerorFactory;
